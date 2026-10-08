@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {suggestPriority,createSchema,updateSchema} from '../lib/tickets.ts';
+test('incident overrides feature request',()=>assert.equal(suggestPriority('Feature request after production down for all users').priority,'Critical'));
+test('blocked workflow is high',()=>assert.equal(suggestPriority('Payment failed, user blocked').priority,'High'));
+test('enhancements are low and ordinary issues medium',()=>{assert.equal(suggestPriority('Would like a new feature').priority,'Low');assert.equal(suggestPriority('Button label looks incorrect').priority,'Medium');});
+test('validation rejects short, oversized, and unknown fields',()=>{const valid={title:'Checkout error',description:'A payment error appears.',category:'Billing',priority:'High'};assert.ok(createSchema.safeParse(valid).success);assert.ok(!createSchema.safeParse({...valid,title:'x'}).success);assert.ok(!createSchema.safeParse({...valid,description:'x'.repeat(4001)}).success);assert.ok(!createSchema.safeParse({...valid,admin:true}).success);});
+test('updates require a positive integer version and valid state',()=>{assert.ok(updateSchema.safeParse({status:'Resolved',priority:'Low',assignee:'Gael',version:1}).success);assert.ok(!updateSchema.safeParse({status:'Gone',priority:'Low',assignee:'Gael',version:0}).success);});
